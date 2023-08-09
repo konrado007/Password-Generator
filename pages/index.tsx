@@ -1,4 +1,49 @@
+import Copy from "@/components/Copy";
+import Cryteria from "@/components/Cryteria";
+import { cryterias } from "@/constants/cryteria";
+import { allCryteria } from "@/constants/password";
+import { useState } from "react";
+
+export type CryteriaKeys = keyof typeof allCryteria;
+
 export default function Home() {
+  const [password, setPassword] = useState<string>("");
+  const [cryteria, setCryteria] = useState<CryteriaKeys[]>([]);
+
+  const [length, setLength] = useState<number>(0);
+  const [error, setError] = useState<string>("");
+
+  const getRandomInt = (min: number, max: number): number => {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
+
+  const generatePassword = () => {
+    if (!cryteria.length || !length) {
+      setError("Choose at least one cryteria and define password length ");
+    } else {
+      setError("");
+    }
+
+    let generatedPassword = "";
+    let maxLength = length;
+
+    if (length > 40) {
+      maxLength = 40;
+    }
+
+    for (let i = 0; i < maxLength; i++) {
+      const randomType = cryteria[getRandomInt(0, cryteria.length - 1)]; // on each index get random category from checked and get random sign of this category
+      const randomSign =
+        allCryteria[randomType][
+          getRandomInt(0, allCryteria[randomType].length - 1)
+        ];
+
+      generatedPassword += randomSign;
+    }
+
+    setPassword(generatedPassword);
+  };
+
   return (
     <div className="bg-[#00ff41] w-full h-screen flex items-center justify-center font-mono">
       <div className="bg-[#222225] px-[50px] py-10 flex gap-5 flex-col rounded-lg">
@@ -7,12 +52,10 @@ export default function Home() {
           <div>toggle</div>
         </nav>
         <div className="w-full items-center justify-between flex border px-2 py-1 bg-transparent">
-          <input
-            type="text"
-            className="w-full font-bold  text-left no-arrows outline-none bg-transparent"
-            placeholder="Your password"
-          />
-          <div className="font-bold">Copy</div>
+          <p className="w-full font-bold text-left no-arrows outline-none bg-transparent">
+            {password || "Your secure password"}
+          </p>
+          <Copy toCopy={password} />
         </div>
 
         <div className="border border-dashed border-[#2f3035] " />
@@ -21,40 +64,16 @@ export default function Home() {
         </div>
         <div className="flex gap-3 justify-between w-full border">
           <div className="p-10">
-            <div className="flex gap-3 items-center">
-              <input
-                type="checkbox"
-                className=" bg-[#3f3f44] h-4 rounded-sm w-4 appearance-none checked:bg-[#00ff41]"
-              />
-              <h2 className="font-bold text-xl">Uppercase</h2>
-            </div>
-            <div className="flex gap-3  items-center">
-              <input
-                type="checkbox"
-                className=" bg-[#3f3f44] h-4 rounded-sm w-4 appearance-none checked:bg-[#00ff41]"
-              />
-              <h2 className="font-bold text-xl">Lowercase</h2>
-            </div>
-            <div className="flex gap-3  items-center">
-              <input
-                type="checkbox"
-                className=" bg-[#3f3f44] h-4 rounded-sm w-4 appearance-none checked:bg-[#00ff41]"
-              />
-              <h2 className="font-bold text-xl">
-                Numeric
-              </h2>
-            </div>
-            <div className="flex gap-3  items-center">
-              <input
-                type="checkbox"
-                className=" bg-[#3f3f44] h-4 rounded-sm w-4 appearance-none checked:bg-[#00ff41]"
-              />
-              <h2 className="font-bold text-xl">Symbols</h2>
-            </div>
+            {cryterias.map((cryteria: string) => {
+              return <Cryteria name={cryteria} setCryteria={setCryteria} />;
+            })}
           </div>
           <div className="p-10 flex gap-2 items-center">
             <div>Password length: </div>
             <input
+              onChange={(e) => {
+                setLength(parseInt(e.target.value));
+              }}
               type="number"
               min="0"
               max="40"
@@ -62,8 +81,11 @@ export default function Home() {
             />
           </div>
         </div>
-
-        <button className="self-start text-black bg-[#00ff41] px-6 py-2 rounded-lg">
+        {error && <div className="text-red-400">{error}</div>}
+        <button
+          className="transition duration-300 self-start text-black hover:bg-[#1b8d36] bg-[#00ff41] px-6 py-2 rounded-lg"
+          onClick={generatePassword}
+        >
           Generate
         </button>
       </div>
